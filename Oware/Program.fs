@@ -11,11 +11,8 @@ type Board ={
     }
 
 type Player=
-    |Player1 of bool
-    |Player2 of bool
-
-let p1Score=0
-let p2Score=0
+    |Player1
+    |Player2
 
 let playBoard= {houses=(4,4,4,4,4,4,4,4,4,4,4,4)}
 
@@ -78,19 +75,20 @@ let setSeeds pos board=
                 | 11 -> a,b,c,d,e,f,g,h,i,j,k+1,l
                 | 12 -> a,b,c,d,e,f,g,h,i,j,k,l+1
             move (amendhousePosition+1) (stopCase-1) amendHouse
-
+    
     move (pos+1) houseNum AmendedBoard
 
-    
+
 let useHouse n board = 
     setSeeds n board 
 
 let start position = 
     match position with 
-    |South -> playBoard.houses
-    |North ->  playBoard.houses
+    |South -> playBoard
+    |North -> playBoard
 
-let score board = failwith "4 "
+let score board =  
+    play
 
 let gameState board = failwith "5"
 
