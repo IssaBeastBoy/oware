@@ -55,16 +55,16 @@ let setSeeds pos board=
 
     let rec move housePosition stopCase accBoard =
         let amendhousePosition = 
-            match housePosition with
-            | 12 -> 1
-            | _ -> housePosition
+            match housePosition<13 with
+            | false -> 1
+            | true -> housePosition
 
         match stopCase=0 with
         | true -> accBoard
         | false -> 
             let a,b,c,d,e,f,g,h,i,j,k,l=accBoard
             let amendHouse = 
-                match housePosition with
+                match amendhousePosition with
                 | 1 -> a+1,b,c,d,e,f,g,h,i,j,k,l
                 | 2 -> a,b+1,c,d,e,f,g,h,i,j,k,l
                 | 3 -> a,b,c+1,d,e,f,g,h,i,j,k,l
