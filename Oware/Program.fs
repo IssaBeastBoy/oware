@@ -37,6 +37,7 @@ let getSeeds n board =
 
 let amendedBoard pos board = 
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
+    let {CurrentPlayer=player} = board
     let newBoard=
         match pos with
         | 1 -> 0,b,c,d,e,f,g,h,i,j,k,l
@@ -51,23 +52,38 @@ let amendedBoard pos board =
         | 10 -> a,b,c,d,e,f,g,h,i,0,k,l
         | 11 -> a,b,c,d,e,f,g,h,i,j,0,l
         | 12 -> a,b,c,d,e,f,g,h,i,j,k,0
-    {board with houses=newBoard}
-
+    let noSeedsToPLay = 
+        match player with
+        | North -> 0,0,0,0,0,0,g,h,i,j,k,l
+        | South -> a,b,c,d,e,f,0,0,0,0,0,0
+    match noSeedsToPLay = newBoard with
+    | true -> board
+    | false -> {board with houses=newBoard}
+    
 let updateScoreBoard n board player =
     let {score=(p1,p2)} = board
+    let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
+    let {houses=boardHouses}=board
     let totalScore =
         match player with 
         | South -> (p1+n),p2
         | North -> p1,(p2+n)
     let newP = {board with score = totalScore}
-    match player with 
-    | South -> {newP with CurrentPlayer=North}
-    | North -> {newP with CurrentPlayer=South}
+    let noSeedsToPLay = 
+        match player with
+        | North -> 0,0,0,0,0,0,g,h,i,j,k,l
+        | South -> a,b,c,d,e,f,0,0,0,0,0,0
+    match noSeedsToPLay = boardHouses with
+    | true -> newP
+    | false -> 
+        match player with 
+        | South -> {newP with CurrentPlayer=North}
+        | North -> {newP with CurrentPlayer=South}
     
 let scoreMethod board inputHouseNumber=
     let {CurrentPlayer=player} = board
-    let rec innerScoreMethod currboard houseNumber score stopCase2= 
-        match stopCase2=0 with
+    let rec innerScoreMethod currboard houseNumber score = 
+        match (playerhouses houseNumber) <> player  with
         | true -> updateScoreBoard score currboard player
         | false ->
             match player=(playerhouses houseNumber) with
@@ -78,10 +94,10 @@ let scoreMethod board inputHouseNumber=
                     | true -> 1
                     |false -> houseNumber
                 match getSeeds actualHouseNumber board with
-                | 3 -> innerScoreMethod (amendedBoard actualHouseNumber currboard) (actualHouseNumber-1) (score+3) (stopCase2-1) 
-                | 2 -> innerScoreMethod (amendedBoard actualHouseNumber currboard) (actualHouseNumber-1) (score+2) (stopCase2-1)
+                | 3 -> innerScoreMethod (amendedBoard actualHouseNumber currboard) (actualHouseNumber-1) (score+3) 
+                | 2 -> innerScoreMethod (amendedBoard actualHouseNumber currboard) (actualHouseNumber-1) (score+2) 
                 | _ -> updateScoreBoard score currboard player
-    innerScoreMethod board (inputHouseNumber) 0 2
+    innerScoreMethod board (inputHouseNumber) 0 
 
 let setSeeds pos board=
     let {CurrentPlayer=player} = board

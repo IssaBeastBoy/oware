@@ -163,7 +163,7 @@ let ``Contiguous seeds from the player's houses are not taken`` () =
 let ``The side with 25 or more seeds wins`` () =
     let game = playGame [2; 11; 3; 10; 4; 12; 1; 8; 6; 7; 5; 12; 2; 11; 1; 10]
     game |> hasSeedCount (1, 0, 0, 1, 0, 1, 1, 3, 10, 0, 1, 2)
-    score game |> should equal (0, 25)
+    score game |> should equal (0, 28)
     gameState game |> should equal "North won"
 
 [<Test>]
