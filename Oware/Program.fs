@@ -35,6 +35,21 @@ let getSeeds n board =
     | 11 -> k
     | 12 -> l
 
+let CheckHousesIfAllZero board player =
+    let housetoStart = 
+        match player with 
+        | South -> 1
+        | North -> 7
+    
+    let rec checkHouses housesWehave counter acc =
+        match counter = 0 with 
+        | true -> acc
+        | false -> 
+            match (getSeeds housesWehave board) with
+            | 0 -> checkHouses (housesWehave+1) (counter-1) true
+            | _ -> false
+    checkHouses housetoStart 6 false
+
 let amendedBoard pos board = 
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     let {CurrentPlayer=player} = board
@@ -56,24 +71,26 @@ let amendedBoard pos board =
         match player with
         | North -> 0,0,0,0,0,0,g,h,i,j,k,l
         | South -> a,b,c,d,e,f,0,0,0,0,0,0
-    match noSeedsToPLay = newBoard with
-    | true -> board
-    | false -> {board with houses=newBoard}
+    match (noSeedsToPLay = newBoard) , (CheckHousesIfAllZero board player) with
+    | true,false -> board
+    | true,true | _ -> {board with houses=newBoard}
+
+let noSeedsToPLay board= 
+    let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
+    let {CurrentPlayer=player} = board
+    match player with
+    | North -> 0,0,0,0,0,0,g,h,i,j,k,l
+    | South -> a,b,c,d,e,f,0,0,0,0,0,0
     
 let updateScoreBoard n board player =
     let {score=(p1,p2)} = board
-    let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     let {houses=boardHouses}=board
     let totalScore =
         match player with 
         | South -> (p1+n),p2
         | North -> p1,(p2+n)
     let newP = {board with score = totalScore}
-    let noSeedsToPLay = 
-        match player with
-        | North -> 0,0,0,0,0,0,g,h,i,j,k,l
-        | South -> a,b,c,d,e,f,0,0,0,0,0,0
-    match noSeedsToPLay = boardHouses with
+    match (noSeedsToPLay board) = boardHouses with
     | true -> newP
     | false -> 
         match player with 
@@ -92,11 +109,17 @@ let scoreMethod board inputHouseNumber=
                 let actualHouseNumber =
                     match houseNumber=0 with
                     | true -> 1
-                    |false -> houseNumber
-                match getSeeds actualHouseNumber board with
-                | 3 -> innerScoreMethod (amendedBoard actualHouseNumber currboard) (actualHouseNumber-1) (score+3) 
-                | 2 -> innerScoreMethod (amendedBoard actualHouseNumber currboard) (actualHouseNumber-1) (score+2) 
-                | _ -> updateScoreBoard score currboard player
+                    | false -> houseNumber
+
+                let newBoard = amendedBoard actualHouseNumber currboard
+                
+                match newBoard=currboard with
+                | true -> updateScoreBoard score currboard player
+                | false -> 
+                    match getSeeds actualHouseNumber board with
+                    | 3 -> innerScoreMethod newBoard (actualHouseNumber-1) (score+3) 
+                    | 2 -> innerScoreMethod newBoard (actualHouseNumber-1) (score+2) 
+                    | _ -> updateScoreBoard score currboard player
     innerScoreMethod board (inputHouseNumber) 0 
 
 let setSeeds pos board=
@@ -118,11 +141,11 @@ let setSeeds pos board=
 
                 match stopCase=0 with
                 | true -> 
-                //check who is playing 
-                //Are they in the right range
-                // Get the values( check 3 back) then update score 
                     let newBoard = {board with houses=accBoard}
-                    scoreMethod newBoard amendhousePosition
+                    match (noSeedsToPLay newBoard) = accBoard with
+                    | true -> board
+                    | false ->
+                        scoreMethod newBoard amendhousePosition
 
                 | false -> 
                     let a,b,c,d,e,f,g,h,i,j,k,l=accBoard
@@ -154,8 +177,8 @@ let useHouse n board =
 
 let start position = 
     match position with 
-    |South -> {playBoard with CurrentPlayer=South}
-    |North -> {playBoard with CurrentPlayer=North}
+    | South -> {playBoard with CurrentPlayer=South}
+    | North -> {playBoard with CurrentPlayer=North}
 
 // board -> int*int
 let score board = 
