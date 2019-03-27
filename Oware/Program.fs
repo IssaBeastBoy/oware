@@ -1,6 +1,7 @@
 ﻿module Oware
 
 open System.Threading.Tasks.Dataflow
+open System.Drawing
 
 type StartingPosition =
     | South
@@ -11,7 +12,7 @@ type Board ={
     CurrentPlayer:StartingPosition
     houses:int*int*int*int*int*int*int*int*int*int*int*int
     }
-
+//int->StartingPostion
 let playerhouses input= 
     match input with
     | 1| 2 | 3 | 4 | 5 | 6 -> North
@@ -19,6 +20,7 @@ let playerhouses input=
 
 let playBoard= {houses=(4,4,4,4,4,4,4,4,4,4,4,4);score=(0,0);CurrentPlayer=South}
 
+//int->board->int
 let getSeeds n board = 
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     match n with
@@ -35,6 +37,7 @@ let getSeeds n board =
     | 11 -> k
     | 12 -> l
 
+ //board->StartingPostion->bool
 let CheckHousesIfAllZero board player =
     let housetoStart = 
         match player with 
@@ -50,6 +53,7 @@ let CheckHousesIfAllZero board player =
             | _ -> false
     checkHouses housetoStart 6 false
 
+//int->board->board
 let amendedBoard pos board = 
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     let {CurrentPlayer=player} = board
@@ -75,6 +79,7 @@ let amendedBoard pos board =
     | true,false -> board
     | true,true | _ -> {board with houses=newBoard}
 
+//board->int*int*int*int*int*int*int*int*int*int*int*int
 let noSeedsToPLay board= 
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     let {CurrentPlayer=player} = board
@@ -82,6 +87,7 @@ let noSeedsToPLay board=
     | North -> 0,0,0,0,0,0,g,h,i,j,k,l
     | South -> a,b,c,d,e,f,0,0,0,0,0,0
     
+//int->board->StartingPostion->board
 let updateScoreBoard n board player =
     let {score=(p1,p2)} = board
     let {houses=boardHouses}=board
@@ -96,7 +102,8 @@ let updateScoreBoard n board player =
         match player with 
         | South -> {newP with CurrentPlayer=North}
         | North -> {newP with CurrentPlayer=South}
-    
+ 
+//board->int->board 
 let scoreMethod board inputHouseNumber=
     let {CurrentPlayer=player} = board
     let rec innerScoreMethod currboard houseNumber score = 
@@ -122,6 +129,7 @@ let scoreMethod board inputHouseNumber=
                     | _ -> updateScoreBoard score currboard player
     innerScoreMethod board (inputHouseNumber) 0 
 
+//int->board->board
 let setSeeds pos board=
     let {CurrentPlayer=player} = board
     let numberOfSeeds = getSeeds pos board
@@ -172,9 +180,11 @@ let setSeeds pos board=
             move (pos+1) numberOfSeeds AmendedBoard
 
     
+//int->board->board
 let useHouse n board = 
     setSeeds n board
 
+//StartingPosition->board
 let start position = 
     match position with 
     | South -> {playBoard with CurrentPlayer=South}
