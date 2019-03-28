@@ -2,12 +2,12 @@
 
 open System.Threading.Tasks.Dataflow
 open System.Drawing
-
-type StartingPosition =
+//Most of the work was done on one computer with all three of us giving input and ideas, these comments are to show my understanding of the work we all did together 
+type StartingPosition = 
     | South
     | North
     
-type Board ={
+type Board ={ //The board we use to play on
     score:int*int
     CurrentPlayer:StartingPosition
     houses:int*int*int*int*int*int*int*int*int*int*int*int
@@ -18,10 +18,10 @@ let playerhouses input=
     | 1| 2 | 3 | 4 | 5 | 6 -> North
     | _ -> South
 
-let playBoard= {houses=(4,4,4,4,4,4,4,4,4,4,4,4);score=(0,0);CurrentPlayer=South}
+let playBoard= {houses=(4,4,4,4,4,4,4,4,4,4,4,4);score=(0,0);CurrentPlayer=South} //Creating the board at the start of the game with South's turn first
 
 //int->board->int
-let getSeeds n board = 
+let getSeeds n board = //This function extracts the desired seeds from the board 
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     match n with
     | 1 -> a
@@ -58,7 +58,7 @@ let amendedBoard pos board =
     let {houses=a,b,c,d,e,f,g,h,i,j,k,l}=board
     let {CurrentPlayer=player} = board
     let newBoard=
-        match pos with
+        match pos with //When the turn starts this will set the house that was selected to 0
         | 1 -> 0,b,c,d,e,f,g,h,i,j,k,l
         | 2 -> a,0,c,d,e,f,g,h,i,j,k,l
         | 3 -> a,b,0,d,e,f,g,h,i,j,k,l
@@ -72,10 +72,10 @@ let amendedBoard pos board =
         | 11 -> a,b,c,d,e,f,g,h,i,j,0,l
         | 12 -> a,b,c,d,e,f,g,h,i,j,k,0
     let noSeedsToPLay = 
-        match player with
+        match player with //This checks if the current player can play on their side
         | North -> 0,0,0,0,0,0,g,h,i,j,k,l
         | South -> a,b,c,d,e,f,0,0,0,0,0,0
-    match (noSeedsToPLay = newBoard) , (CheckHousesIfAllZero board player) with
+    match (noSeedsToPLay = newBoard) , (CheckHousesIfAllZero board player) with //If all of them are 0 with should return a new board that's able to be played
     | true,false -> board
     | true,true | _ -> {board with houses=newBoard}
 
@@ -91,8 +91,8 @@ let noSeedsToPLay board=
 let updateScoreBoard n board player =
     let {score=(p1,p2)} = board
     let {houses=boardHouses}=board
-    let totalScore =
-        match player with 
+    let totalScore = //When the seeds are captured this will increment the score for the player on the turn the seeds were captured
+        match player with  
         | South -> (p1+n),p2
         | North -> p1,(p2+n)
     let newP = {board with score = totalScore}
@@ -106,9 +106,9 @@ let updateScoreBoard n board player =
 //board->int->board 
 let scoreMethod board inputHouseNumber=
     let {CurrentPlayer=player} = board
-    let rec innerScoreMethod currboard houseNumber score = 
+    let rec innerScoreMethod currboard houseNumber score = //This function is for scoring the player
         match (playerhouses houseNumber) <> player  with
-        | true -> updateScoreBoard score currboard player
+        | true -> updateScoreBoard score currboard player //Upadting the score for current player
         | false ->
             match player=(playerhouses houseNumber) with
             | false -> updateScoreBoard score currboard player
@@ -123,7 +123,7 @@ let scoreMethod board inputHouseNumber=
                 match newBoard=currboard with
                 | true -> updateScoreBoard score currboard player
                 | false -> 
-                    match getSeeds actualHouseNumber board with
+                    match getSeeds actualHouseNumber board with //If there are more seeds to capture move back and capture them until it can't be capture anymore
                     | 3 -> innerScoreMethod newBoard (actualHouseNumber-1) (score+3) 
                     | 2 -> innerScoreMethod newBoard (actualHouseNumber-1) (score+2) 
                     | _ -> updateScoreBoard score currboard player
@@ -137,12 +137,12 @@ let setSeeds pos board=
     match player=( playerhouses pos) with
     | true -> board
     | false ->
-        match numberOfSeeds=0 with
+        match numberOfSeeds=0 with //If there are no seeds to sow, return the board as is
         | true -> board
         | false ->
-            let rec move housePosition stopCase accBoard =
+            let rec move housePosition stopCase accBoard = //This function is to sow the seeds while going around the board
                 let amendhousePosition = 
-                    match housePosition<13, stopCase=0 with
+                    match housePosition<13, stopCase=0 with //House position will loop back to one if it is 13
                     | false,false -> 1
                     | true,false -> housePosition
                     | _ ->  housePosition-1
@@ -162,7 +162,7 @@ let setSeeds pos board=
                         | true -> amendhousePosition+1
                         |false -> amendhousePosition
                     let amendHouse = 
-                        match newAmendedHousePosition with
+                        match newAmendedHousePosition with //Matches position with house and increments them from the tuple
                         | 1 -> a+1,b,c,d,e,f,g,h,i,j,k,l
                         | 2 -> a,b+1,c,d,e,f,g,h,i,j,k,l
                         | 3 -> a,b,c+1,d,e,f,g,h,i,j,k,l
@@ -185,9 +185,9 @@ let useHouse n board =
     setSeeds n board
 
 //StartingPosition->board
-let start position = 
+let start position =  //Whereever you choose to start this will return the board with that player
     match position with 
-    | South -> {playBoard with CurrentPlayer=South}
+    | South -> {playBoard with CurrentPlayer=South} 
     | North -> {playBoard with CurrentPlayer=North}
 
 // board -> int*int
@@ -199,16 +199,16 @@ let score board =
 let gameState board =
     let {CurrentPlayer=(Playing)} =board
     let {score =(playerOne,playerTwo)}=board
-    match (playerOne=24 && playerTwo=24) with
+    match (playerOne=24 && playerTwo=24) with //If each player has 24 seeds the game ends in a draw
     | true -> "Game ended in a draw"
     | false -> 
-        match (playerTwo>=25) with
+        match (playerTwo>=25) with //Once the player has 25 seeds or more 
         | true -> "North won"
         | false -> 
             match (playerOne>=25) with 
             | true -> "South won"
             | false -> 
-                match Playing with
+                match Playing with //If not, keep playing
                 |South -> "South's turn"
                 |North -> "North's turn"
     
